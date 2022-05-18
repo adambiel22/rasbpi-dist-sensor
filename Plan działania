@@ -1,0 +1,37 @@
+Treść
+Czujnik odległości. Dwa tryby wybierane przyciskami:
+1) Zwykły czujnik odległości. Na hoście jest cały czas wyświetlana aktualna odległość zmierzona przez czujnik.
+2) Czujnik antywłamaniowy - Co określony czas rzędu sekundy robiony jest pomiar odległości od przedmiotu. Jeśli nie znajdzie przedmiotu na zadanej odległości odległości to podnosi alarm dźwiękowy i świetlny.
+
+Co będzie można robić przez interfejs sieciowy
+Przełączać tryb 
+Odczytywać na bieżąco pomiary czujnika odległości
+Resetować alarm
+
+
+Serwer z interfejsem internetowym
+ - wybór trybu
+ - Tryb odległościomierza
+    - wyświetlanie na bierząco odległości
+ - Tryb antywłamaniowy
+    - wyświetlanie na bierząco odległości
+    - włączenie trybu czuwania
+    - ustawienia
+        - czułość 
+        - interwał pomiarów
+    - w stanie alarmu
+        - wyświetlanie informacji o alarmie
+        - możliwość zresetowania alarmu
+
+Obsługa czujnika
+ - Stan luzu
+ - Stan czuwania
+ - Stan alarm
+
+ - funkcja pomiaru odległości
+    - wysyła na odpowiednie
+    - 
+
+
+
+Zrobienie paczki do buildroota z tego wszystkiego

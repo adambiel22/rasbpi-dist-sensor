@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Sensor</title>
+</head>
+
+<body>
+    <h1>Distance</h1>
+    <p id="dist"></p>
+    <div id="watch" style="visibility: hidden;">
+        <h1 id="watch_h">Watching distance</h1>
+        <p id="watch_val"></p>
+    </div>
+    <script>
+        var intervalID = 0
+        const url = window.location.href
+
+        function startMeasure() {
+            fetch(url + 'start', {
+                method: "POST",
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.state === 'measure') {
+                        console.log('start measure')
+                        intervalID = setInterval(fetchData, 1000)
+                    }
+                })
+                .catch((reason) => console.log(reason))
+        }
+
+        function stopMeasure() {
+
+            fetch(url + 'stop', {
+                method: "POST",
+            })
+                .then((response) => response.json())
+                .then(data => {
+                    if (data.state === 'idle') {
+                        console.log("stop measure")
+                        clearInterval(intervalID)
+                        intervalID = 0
+                    }
+                })
+                .catch((reason) => console.log(reason))
+        }
+
+        function watch() {
+            fetch(url + 'watch', {
+                method: "POST",
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.state == 'watch') {
+                        console.log('start watch')
+                        document.getElementById("watch").style.visibility = "visible"
+                        document.getElementById("watch_val").innerHTML = data.watching_dist
+                    }
+                })
+                .catch((reason) => console.log(reason))
+        }
+
+        function stopWatch() {
+            fetch(url + 'stop-watch', {
+                method: "POST",
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.state == 'measure') {
+                        console.log('stop watch')
+                        document.getElementById("watch").style.visibility = "hidden"
+                        document.getElementById("watch_val").innerHTML = ""
+                    }
+                })
+                .catch((reason) => console.log(reason))
+        }
+
+        function fetchData() {
+            fetch(url + 'data', {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data)
+                    if (data.state === 'watch' || data.state === 'measure') {
+                        document.getElementById("dist").innerHTML = data.dist
+                    } else if (data.state === 'idle') {
+                        clearInterval(intervalID)
+                        intervalID = 0
+                    }
+                })
+                .catch((reason) => console.log(reason))
+        }
+
+    </script>
+
+    <button type="button" onclick="startMeasure()">Start measure</button>
+    <button type="button" onclick="stopMeasure()">Stop measure</button>
+    <button type="button" onclick="watch()">Watch</button>
+    <button type="button" onclick="stopWatch()">Stop watch</button>
+</body>
+
+</html>
