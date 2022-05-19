@@ -1,5 +1,5 @@
 import random
 
-#Libraries
+# Libraries
 def distance():
     return random.random()

@@ -1,66 +1,80 @@
-from flask import Flask, render_template
+from http import HTTPStatus
+from flask import Flask, make_response, render_template, Response
 from threading import Timer
 import fake_sensor as sensor
 
 app = Flask(__name__)
-DIST = 0
-MEASURE = False
-DATA = {"dist": 0, "state": "idle", "watching_dist": -1, "dist_error": 1}
-IDLE = 'idle'
-MEASURE = 'measure'
-WATCH = 'watch'
-IDLE_WATCH = 'idle-watch'
+DATA = {
+    "dist": 0,
+    "measure": False,
+    "watch": False,
+    "alarm": False,
+    "watching_dist": -1,
+    "dist_error": 1,
+}
+
 
 def update_data(interval):
     global DATA
-    if DATA['state'] != IDLE:
+    if DATA["measure"]:
         Timer(interval, update_data, [interval]).start()
-        print('measuring')
-        DATA['dist'] = sensor.distance()
-    if DATA['state'] == WATCH and abs(DATA['dist'] - DATA['watching_dist']) > DATA['dist_error']:
-        print('ALARM')
+        print("measuring")
+        DATA["dist"] = sensor.distance()
+    if DATA["watch"] and abs(DATA["dist"] - DATA["watching_dist"]) > DATA["dist_error"]:
+        DATA["alarm"] = True
+        print("ALARM")
 
 
-@app.route('/')
+@app.route("/")
 def root():
-    return render_template('sensor.html')
+    return render_template("sensor.html")
 
-@app.route('/data')
+
+@app.route("/data")
 def data():
     return DATA
 
-@app.route('/start', methods=['POST'])
+
+@app.route("/start-measure", methods=["POST"])
 def start():
     global DATA
-    if DATA['state'] == IDLE:
-        DATA['state'] = MEASURE
+    if not DATA["measure"]:
+        DATA["measure"] = True
         update_data(1)
     return DATA
 
-@app.route('/stop', methods=['POST'])
+
+@app.route("/stop-measure", methods=["POST"])
 def stop():
     global DATA
-    if DATA['state'] == MEASURE:
-        DATA['state'] = IDLE
-    elif DATA['state'] == WATCH:
-        DATA['state'] = IDLE
+    if DATA["measure"]:
+        DATA["measure"] = False
     return DATA
 
-@app.route('/watch', methods=['POST'])
+
+@app.route("/start-watch", methods=["POST"])
 def watch():
     global DATA
-    if DATA['state'] == MEASURE:
-        DATA['state'] = WATCH
-        DATA['watching_dist'] = DATA['dist']
+    if not DATA["measure"]:
+        return make_response("First start measuring, then start watching", 400)
+        # Response(
+        #     status=HTTPStatus.BAD_REQUEST,
+        #     response="First start measuring, then start watching",
+        # )
+    else:
+        DATA["watch"] = True
+        DATA["watching_dist"] = DATA["dist"]
     return DATA
 
-@app.route('/stop-watch', methods = ['POST'])
+
+@app.route("/stop-watch", methods=["POST"])
 def stop_watch():
     global DATA
-    if DATA['state'] == WATCH:
-        DATA['state'] = MEASURE
-        DATA['watching_dist'] = -1
+    if DATA["watch"]:
+        DATA["watch"] = False
+        DATA["watching_dist"] = -1
     return DATA
 
-if __name__=="__main__":
-    app.run(host='localhost', port=8888, debug=True)
+
+if __name__ == "__main__":
+    app.run(host="localhost", port=8888, debug=True)

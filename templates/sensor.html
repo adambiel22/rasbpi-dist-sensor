@@ -18,12 +18,12 @@
         const url = window.location.href
 
         function startMeasure() {
-            fetch(url + 'start', {
+            fetch(url + 'start-measure', {
                 method: "POST",
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    if (data.state === 'measure') {
+                    if (data.measure) {
                         console.log('start measure')
                         intervalID = setInterval(fetchData, 1000)
                     }
@@ -32,13 +32,12 @@
         }
 
         function stopMeasure() {
-
-            fetch(url + 'stop', {
+            fetch(url + 'stop-measure', {
                 method: "POST",
             })
                 .then((response) => response.json())
                 .then(data => {
-                    if (data.state === 'idle') {
+                    if (!data.measure) {
                         console.log("stop measure")
                         clearInterval(intervalID)
                         intervalID = 0
@@ -47,19 +46,25 @@
                 .catch((reason) => console.log(reason))
         }
 
-        function watch() {
-            fetch(url + 'watch', {
+        function startWatch() {
+            fetch(url + 'start-watch', {
                 method: "POST",
             })
-                .then((response) => response.json())
+                .then((response) => {
+                    if (!response.ok) {
+                        throw response.text()
+                    } else {
+                        return response.json()
+                    }
+                })
                 .then((data) => {
-                    if (data.state == 'watch') {
+                    if (data.watch) {
                         console.log('start watch')
                         document.getElementById("watch").style.visibility = "visible"
                         document.getElementById("watch_val").innerHTML = data.watching_dist
                     }
                 })
-                .catch((reason) => console.log(reason))
+                .catch(reason => reason.then(text => alert(text)))
         }
 
         function stopWatch() {
@@ -68,7 +73,7 @@
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    if (data.state == 'measure') {
+                    if (!data.watch) {
                         console.log('stop watch')
                         document.getElementById("watch").style.visibility = "hidden"
                         document.getElementById("watch_val").innerHTML = ""
@@ -79,28 +84,27 @@
 
         function fetchData() {
             fetch(url + 'data', {
-                headers: {
-                    'Content-Type': 'application/json',
-                }
             })
                 .then((response) => response.json())
                 .then((data) => {
                     console.log(data)
-                    if (data.state === 'watch' || data.state === 'measure') {
+                    if (data.measure) {
                         document.getElementById("dist").innerHTML = data.dist
-                    } else if (data.state === 'idle') {
+                    } else {
                         clearInterval(intervalID)
                         intervalID = 0
+                    }
+                    if (data.alarm) {
+                        console.log("ALARM")
                     }
                 })
                 .catch((reason) => console.log(reason))
         }
 
     </script>
-
     <button type="button" onclick="startMeasure()">Start measure</button>
     <button type="button" onclick="stopMeasure()">Stop measure</button>
-    <button type="button" onclick="watch()">Watch</button>
+    <button type="button" onclick="startWatch()">Watch</button>
     <button type="button" onclick="stopWatch()">Stop watch</button>
 </body>
 
